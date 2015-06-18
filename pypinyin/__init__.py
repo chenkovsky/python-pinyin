@@ -107,7 +107,7 @@ seg.jieba = None
 
 def load_phrases_ngram(phrases_ngram):
   """载入用户自定义的词组拼音库
-  :param phrases_ngram: 词组拼音库。比如： ``{("朝阳", "群众"): [['cháo'],['yáng'], ['qún'], ['zhòng']]}``
+  :param phrases_ngram: 词组拼音库。比如： ``{("朝阳", "群众"): [[['cháo'],['yáng']], [['qún'], ['zhòng']]]}``
   :type phrases_ngram: dict
   """
   PHRASES_NGRAM.update(phrases_ngram)
