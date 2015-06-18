@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 
 __title__ = 'pypinyin'
 __version__ = '0.6.0'
-__author__ = 'mozillazg, 闲耘'
+__author__ = 'mozillazg, 闲耘, chenkovsky'
 __license__ = 'MIT'
-__copyright__ = 'Copyright (c) 2014 mozillazg, 闲耘'
+__copyright__ = 'Copyright (c) 2014 mozillazg, 闲耘, chenkovsky'
 
 __all__ = ['pinyin', 'lazy_pinyin', 'slug',
            'STYLE_NORMAL', 'NORMAL',
@@ -21,22 +21,35 @@ __all__ = ['pinyin', 'lazy_pinyin', 'slug',
            'STYLE_FINALS_TONE2', 'FINALS_TONE2',
            'STYLE_FIRST_LETTER', 'FIRST_LETTER']
 
+from collections import deque
 from copy import deepcopy
 from itertools import chain
 import re
 import sys
+import marisa_trie
 
-from . import phrases_dict, phonetic_symbol, pinyin_dict
+from . import phrases_dict, phonetic_symbol, pinyin_dict, phrases_ngram
 
 py3k = sys.version_info >= (3, 0)
 if py3k:
     unicode = str
     callable = lambda x: getattr(x, '__call__', None)
 
+# 词组拼音库
+PHRASES_NGRAM = phrases_ngram.phrases_ngram.copy()
+
 # 词语拼音库
 PHRASES_DICT = phrases_dict.phrases_dict.copy()
+PHRASES_DICT.update({"".join(t) : sum(v,[]) for t, v in PHRASES_NGRAM.items()})
 # 单字拼音库
 PINYIN_DICT = pinyin_dict.pinyin_dict.copy()
+updated = True
+def before_pinyin():
+  global updated, PHRASE_TRIE, PHRASES_NGRAM_ORDER
+  if updated:
+    updated = False
+    PHRASE_TRIE = marisa_trie.Trie([x for x in PHRASES_DICT])
+    PHRASES_NGRAM_ORDER = max([len(x) for x in PHRASES_NGRAM],default=1)
 # 声母表
 _INITIALS = 'zh,ch,sh,b,p,m,f,d,t,n,l,g,k,h,j,q,x,r,z,c,s,yu,y,w'.split(',')
 # 带声调字符与使用数字标识的字符的对应关系，类似： {u'ā': 'a1'}
@@ -92,6 +105,15 @@ def seg(hans):
         return seg.jieba.cut(hans)
 seg.jieba = None
 
+def load_phrases_ngram(phrases_ngram):
+  """载入用户自定义的词组拼音库
+  :param phrases_ngram: 词组拼音库。比如： ``{("朝阳", "群众"): [['cháo'],['yáng'], ['qún'], ['zhòng']]}``
+  :type phrases_ngram: dict
+  """
+  PHRASES_NGRAM.update(phrases_ngram)
+  PHRASES_DICT.update({"".join(t) : v for t, v in phrases_ngram.items()})
+  global updated
+  updated = True
 
 def load_single_dict(pinyin_dict):
     """载入用户自定义的单字拼音库
@@ -100,6 +122,8 @@ def load_single_dict(pinyin_dict):
     :type pinyin_dict: dict
     """
     PINYIN_DICT.update(pinyin_dict)
+    global updated
+    updated = True
 
 
 def load_phrases_dict(phrases_dict):
@@ -109,6 +133,8 @@ def load_phrases_dict(phrases_dict):
     :type phrases_dict: dict
     """
     PHRASES_DICT.update(phrases_dict)
+    global updated
+    updated = True
 
 
 def initial(pinyin):
@@ -189,6 +215,52 @@ def _handle_nopinyin_char(char, errors='default'):
     elif errors == 'replace':
         return unicode('%x' % ord(char))
 
+def prefix_pinyin(phrases, style, heteronym, errors='default'):
+  """前缀匹配表组单词.
+
+  :param phrases: 单词
+  :param errors: 指定如何处理没有拼音的字符，详情请参考
+                 :py:func:`~pypinyin.pinyin`
+  :return: 返回拼音列表，多音字会有多个拼音项
+  :rtype: list
+  """
+  py = []
+  s =  phrases
+  while len(s) > 0:
+    prefixes = sorted([(x,len(x)) for x in PHRASE_TRIE.prefixes(s)], key=lambda x: -x[1])
+    if len(prefixes) == 0:
+      prefix = s[0]
+      s = s[1:]
+    else:
+      prefix = prefixes[0]
+      s = s[len(prefixes):]
+    if len(prefix) == 1:
+      py.append(single_pinyin(prefix, style, heteronym, errors))
+    else:
+      py.extend(phrases_pinyin(prefix, style, heteronym, errors))
+  return py
+
+def ngram_pinyin(pinyins, words, style):
+  """在非返回多音字的情景下，通过ngram，纠正拼音标注
+  :param pys: 当前拼音
+  :param words: 所有词
+  :param style: 指定拼音风格
+  """
+  offset = 0
+  word_py = []
+  queue = deque()
+  for word in words:
+    word_py.append(pinyins[offset:offset + len(word)])
+    offset += len(word)
+    queue.append(word)
+    if len(queue) > PHRASES_NGRAM_ORDER:
+      queue.popleft()
+    word_tuple = tuple(queue)
+    if word_tuple in PHRASES_NGRAM:
+      #采用ngram里面的标注取代原来的标注
+      word_py = word_py[:-len(word_tuple)] + PHRASES_NGRAM[word_tuple]
+  return sum(word_py,[])
+
 
 def single_pinyin(han, style, heteronym, errors='default'):
     """单字拼音转换.
@@ -220,11 +292,12 @@ def single_pinyin(han, style, heteronym, errors='default'):
     return pinyins
 
 
-def phrases_pinyin(phrases, style, heteronym, errors='default'):
+def phrases_pinyin(phrases, style, heteronym, errors='default', missing_word = "longest_prefix"):
     """词语拼音转换.
 
     :param phrases: 词语
     :param errors: 指定如何处理没有拼音的字符
+    :param missing_word:当这个词不存在的时候，如何处理，missing_word = "longest_prefix"时，采用最长前缀匹配单词，比如分出了单词朝阳区的。但是单词表只有朝阳区，那么会优先匹配朝阳区，而非一个一个字地标注。
     :return: 拼音列表
     :rtype: list
     """
@@ -234,6 +307,10 @@ def phrases_pinyin(phrases, style, heteronym, errors='default'):
         for idx, item in enumerate(py):
             py[idx] = [toFixed(item[0], style=style)]
     else:
+        #@TODO 应该来个前缀search
+        if missing_word == "longest_prefix":
+          return prefix_pinyin(phrases, style=style, heteronym=heteronym,
+                                   errors=errors)
         for i in phrases:
             single = single_pinyin(i, style=style, heteronym=heteronym,
                                    errors=errors)
@@ -269,7 +346,7 @@ def _pinyin(words, style, heteronym, errors):
     return pys
 
 
-def pinyin(hans, style=TONE, heteronym=False, errors='default'):
+def pinyin(hans, style=TONE, heteronym=False, errors='default', ret_tokenized = False, ngram = True):
     """将汉字转换为拼音.
 
     :param hans: 汉字字符串( ``u'你好吗'`` )或列表( ``[u'你好', u'吗']`` ).
@@ -296,6 +373,7 @@ def pinyin(hans, style=TONE, heteronym=False, errors='default'):
                          pinyin(u'あ', errors=foobar)
 
     :param heteronym: 是否启用多音字
+    :param ret_tokenized: 返回的时候是否返回分词后的词
     :return: 拼音列表
     :rtype: list
 
@@ -312,12 +390,17 @@ def pinyin(hans, style=TONE, heteronym=False, errors='default'):
       >>> pinyin(u'中心', style=pypinyin.TONE2)
       [[u'zho1ng'], [u'xi1n']]
     """
+    before_pinyin()
     # 对字符串进行分词处理
     if isinstance(hans, unicode):
-        hans = seg(hans)
+        hans = [x for x in seg(hans)]
     pys = []
     for words in hans:
         pys.extend(_pinyin(words, style, heteronym, errors))
+    if ngram and not heteronym:
+      pys = ngram_pinyin(pys, hans, style)
+    if ret_tokenized:
+      return (pys, hans)
     return pys
 
 
