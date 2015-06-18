@@ -235,10 +235,7 @@ def prefix_pinyin(phrases, style, heteronym, errors='default'):
     else:
       prefix = prefixes[0][0]
       s = s[len(prefix):]
-    if len(prefix) == 1:
-      py.append(single_pinyin(prefix, style, heteronym, errors))
-    else:
-      py.extend(phrases_pinyin(prefix, style, heteronym, errors))
+    py += phrases_pinyin(prefix, style, heteronym, errors, missing_word = None)
   return py
 
 def ngram_pinyin(pinyins, words, style):
