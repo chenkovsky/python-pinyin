@@ -228,7 +228,7 @@ def prefix_pinyin(phrases, style, heteronym, errors='default'):
   s =  phrases
   while len(s) > 0:
     prefixes = sorted([(x,len(x)) for x in PHRASE_TRIE.prefixes(s)], key=lambda x: -x[1])
-    print(prefixes)
+    #print(prefixes)
     if len(prefixes) == 0:
       prefix = s[0]
       s = s[1:]
