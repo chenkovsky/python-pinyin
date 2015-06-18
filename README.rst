@@ -124,6 +124,18 @@
     >>> lazy_pinyin(u'还没', style=TONE2)
     ['ha2i', 'me2i']
 
+自定义Ngram
+------------
+可以通过添加ngram的方式来修正结果：
+.. code-block:: python
+
+    >> from pypinyin import lazy_pinyin, load_phrases_dict, TONE2
+    >> hans = u'朝阳群众'
+    >> lazy_pinyin(hans, style=TONE2)
+    [u'jie2', u'zi3']
+    >> load_phrases_ngram({("朝阳", "群众"): [[['cháo'],['yáng']], [['qún'], ['zhòng']]]})
+    >> lazy_pinyin(hans, style=TONE2)
+    [u'chao2', u'yang2',u'qun2',u'zhong4']
 
 Related Projects
 -----------------
