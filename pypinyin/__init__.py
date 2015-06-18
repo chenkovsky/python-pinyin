@@ -228,12 +228,13 @@ def prefix_pinyin(phrases, style, heteronym, errors='default'):
   s =  phrases
   while len(s) > 0:
     prefixes = sorted([(x,len(x)) for x in PHRASE_TRIE.prefixes(s)], key=lambda x: -x[1])
+    print(prefixes)
     if len(prefixes) == 0:
       prefix = s[0]
       s = s[1:]
     else:
-      prefix = prefixes[0]
-      s = s[len(prefixes):]
+      prefix = prefixes[0][0]
+      s = s[len(prefix):]
     if len(prefix) == 1:
       py.append(single_pinyin(prefix, style, heteronym, errors))
     else:
