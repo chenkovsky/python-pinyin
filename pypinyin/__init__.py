@@ -37,7 +37,7 @@ if py3k:
 
 # 词组拼音库
 PHRASES_NGRAM = phrases_ngram.phrases_ngram.copy()
-
+PHRASE_NGRAM_LAST_WORD_SET = set([x[-1] for x in PHRASES_NGRAM])
 # 词语拼音库
 PHRASES_DICT = phrases_dict.phrases_dict.copy()
 PHRASES_DICT.update({"".join(t) : sum(v,[]) for t, v in PHRASES_NGRAM.items()})
@@ -111,6 +111,7 @@ def load_phrases_ngram(phrases_ngram):
   :type phrases_ngram: dict
   """
   PHRASES_NGRAM.update(phrases_ngram)
+  PHRASE_NGRAM_LAST_WORD_SET |= set([x[-1] for x in phrases_ngram])
   PHRASES_DICT.update({"".join(t) : v for t, v in phrases_ngram.items()})
   global updated
   updated = True
@@ -253,10 +254,14 @@ def ngram_pinyin(pinyins, words, style):
     queue.append(word)
     if len(queue) > PHRASES_NGRAM_ORDER:
       queue.popleft()
-    word_tuple = tuple(queue)
-    if word_tuple in PHRASES_NGRAM:
-      #采用ngram里面的标注取代原来的标注
-      word_py = word_py[:-len(word_tuple)] + PHRASES_NGRAM[word_tuple]
+    if word in PHRASE_NGRAM_LAST_WORD_SET:
+      word_tuple = tuple(queue)
+      for i in range(PHRASES_NGRAM_ORDER, 1, -1):
+        if word_tuple in PHRASES_NGRAM:
+          #采用ngram里面的标注取代原来的标注
+          word_py = word_py[:-len(word_tuple)] + PHRASES_NGRAM[word_tuple]
+          break
+        word_tuple = word_tuple[1:]
   return sum(word_py,[])
 
 
