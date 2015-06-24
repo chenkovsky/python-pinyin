@@ -33,3 +33,6 @@ phonetic_symbol = {
     "ň": "n3",
     "": "m2"
 }
+
+phonetic_symbol2 = {x : (phonetic_symbol[x][0],int(phonetic_symbol[x][1])) for x in phonetic_symbol}
+

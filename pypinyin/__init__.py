@@ -28,7 +28,7 @@ import re
 import sys
 import marisa_trie
 
-from . import phrases_dict, phonetic_symbol, pinyin_dict, phrases_ngram
+from . import phrases_dict, phonetic_symbol, pinyin_dict, phrases_ngram, zhuyin
 
 py3k = sys.version_info >= (3, 0)
 if py3k:
@@ -71,6 +71,7 @@ PINYIN_STYLE = {
     'FINALS': 5,          # 仅保留韵母部分，不带声调
     'FINALS_TONE': 6,     # 仅保留韵母部分，带声调
     'FINALS_TONE2': 7,    # 仅保留韵母部分，声调在拼音之后，使用数字 1~4 标识
+    'ZHU':8               # 台湾注音
 }
 # 普通风格，不带声调
 NORMAL = STYLE_NORMAL = PINYIN_STYLE['NORMAL']
@@ -88,6 +89,8 @@ FINALS = STYLE_FINALS = PINYIN_STYLE['FINALS']
 FINALS_TONE = STYLE_FINALS_TONE = PINYIN_STYLE['FINALS_TONE']
 # 仅保留韵母部分，声调在拼音之后，使用数字 1~4 标识
 FINALS_TONE2 = STYLE_FINALS_TONE2 = PINYIN_STYLE['FINALS_TONE2']
+# 台湾注音
+ZHU = STYLE_ZHU = PINYIN_STYLE['ZHU']
 
 
 def seg(hans):
@@ -151,6 +154,18 @@ def initial(pinyin):
             return i
     return ''
 
+def zhu(pinyin):
+  """将标准拼音转换成台湾注音
+  """
+  tone = [0]
+  def _replace(m):
+      symbol = m.group(0)
+      tone[0] = phonetic_symbol.phonetic_symbol2[symbol][1]
+      return phonetic_symbol.phonetic_symbol2[symbol][0]
+  py = re.sub(RE_PHONETIC_SYMBOL, _replace , pinyin)
+  print(tone)
+  return zhuyin.hanpin2zhu[py]+zhuyin.zhuyin_tones[tone[0]]
+
 
 def final(pinyin):
     """获取单个拼音中的韵母.
@@ -177,6 +192,8 @@ def toFixed(pinyin, style):
     # 声母
     if style == INITIALS:
         return initial(pinyin)
+    elif style == ZHU:
+        return zhu(pinyin)
 
     def _replace(m):
         symbol = m.group(0)  # 带声调的字符
