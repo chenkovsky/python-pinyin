@@ -61,7 +61,7 @@ pinyin_tone_dict = {
 }
 
 zhuyin_tones = ["˙", "", "ˊ", "ˇ", "ˋ"]
-
+zhuyin_tones2num = {zhu : idx for idx, zhu in enumerate(zhuyin_tones)}
 rhymes = set(['a','e','i','o','u','v'])
 
 def isRhymes(c):
@@ -470,3 +470,4 @@ zhuyin_hanpin_stdpin = [("ㄅㄚ","ba","ba"),
 ("ㄩㄥ","yong","yong")]
 
 hanpin2zhu = {x[1]: x[0] for x in zhuyin_hanpin_stdpin}
+zhu2hanpin = {x[0]: x[1] for x in zhuyin_hanpin_stdpin}

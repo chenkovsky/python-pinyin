@@ -155,7 +155,7 @@ def initial(pinyin):
     return ''
 
 def zhu(pinyin):
-  """将标准拼音转换成台湾注音
+  """将拼音转换成台湾注音
   """
   tone = [0]
   def _replace(m):
@@ -166,6 +166,30 @@ def zhu(pinyin):
   print(tone)
   return zhuyin.hanpin2zhu[py]+zhuyin.zhuyin_tones[tone[0]]
 
+def tag_tone(py, tone):
+  if tone == 0:
+    return py
+  if "a" in py:
+    return py.replace("a", zhuyin.pinyin_tone_dict["a"][tone])
+  if "o" in py:
+    return py.replace("o", zhuyin.pinyin_tone_dict["o"][tone])
+  if "e" in py:
+    return py.replace("e", zhuyin.pinyin_tone_dict["e"][tone])
+  if "iu" in py:
+    return py.replace("u", zhuyin.pinyin_tone_dict["u"][tone])
+  if "ui" in py:
+    return py.replace("i", zhuyin.pinyin_tone_dict["i"][tone])
+  return py
+
+def pin(zhu):
+  """将台湾注音转换成拼音
+  """
+  if len(zhu) == 0:
+    return ""
+  if zhu[-1] in zhuyin.zhuyin_tones:
+    return tag_tone(zhuyin.zhu2hanpin[zhu[:-1]], zhuyin.zhuyin_tones2num[zhu[-1]])
+  else:
+    return tag_tone(zhuyin.zhu2hanpin[zhu], 1)
 
 def final(pinyin):
     """获取单个拼音中的韵母.
