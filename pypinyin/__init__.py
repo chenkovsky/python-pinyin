@@ -49,7 +49,9 @@ def before_pinyin():
   if updated:
     updated = False
     PHRASE_TRIE = marisa_trie.Trie([x for x in PHRASES_DICT])
-    PHRASES_NGRAM_ORDER = max([len(x) for x in PHRASES_NGRAM],default=1)
+    arr = [len(x) for x in PHRASES_NGRAM]
+    arr.append(1)
+    PHRASES_NGRAM_ORDER = max(arr)
 # 声母表
 _INITIALS = 'zh,ch,sh,b,p,m,f,d,t,n,l,g,k,h,j,q,x,r,z,c,s,yu,y,w'.split(',')
 # 带声调字符与使用数字标识的字符的对应关系，类似： {u'ā': 'a1'}
