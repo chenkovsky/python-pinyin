@@ -60,7 +60,7 @@ pinyin_tone_dict = {
     'ü': ['ü', 'ǖ', 'ǘ', 'ǚ', 'ǜ']
 }
 
-zhuyin_tones = ["˙", "", "ˊ", "ˇ", "ˋ"]
+zhuyin_tones = ["˙", "ˉ", "ˊ", "ˇ", "ˋ"]
 zhuyin_tones2num = {zhu : idx for idx, zhu in enumerate(zhuyin_tones)}
 rhymes = set(['a','e','i','o','u','v'])
 
@@ -238,6 +238,7 @@ zhuyin_hanpin_stdpin = [("ㄅㄚ","ba","ba"),
 ("ㄍㄨㄢ","guan","guan"),
 ("ㄍㄨㄣ","gun","gun"),
 ("ㄍㄨㄤ","guang","guang"),
+("ㄍㄨㄥ","gong","gong"),
 ("ㄎㄚ","ka","ka"),
 ("ㄎㄜ","ke","ke"),
 ("ㄎㄞ","kai","kai"),
