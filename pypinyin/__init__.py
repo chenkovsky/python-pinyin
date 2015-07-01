@@ -163,7 +163,7 @@ def zhu(pinyin):
   def _replace(m):
       symbol = m.group(0)
       tone[0] = phonetic_symbol.phonetic_symbol2[symbol][1]
-      return phonetic_symbol.phonetic_symbol2[symbol][0]
+      return phonetic_symbol.phonetic_symbol2[symbol][0].replace("v","ü")
   py = re.sub(RE_PHONETIC_SYMBOL, _replace , pinyin)
   print(tone)
   return zhuyin.hanpin2zhu[py]+zhuyin.zhuyin_tones[tone[0]]
