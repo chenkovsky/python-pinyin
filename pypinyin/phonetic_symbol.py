@@ -31,7 +31,9 @@ phonetic_symbol = {
     "ǜ": "v4",
     "ń": "n2",
     "ň": "n3",
-    "": "m2"
+    "ǹ": "n4",
+    "ḿ": "m2",
+    "M": "m4" #m4是两个char,所以用M来代表m4
 }
 
 phonetic_symbol2 = {x : (phonetic_symbol[x][0],int(phonetic_symbol[x][1])) for x in phonetic_symbol}

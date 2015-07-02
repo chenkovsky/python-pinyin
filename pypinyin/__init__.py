@@ -185,6 +185,10 @@ def tag_tone(py, tone):
     return py.replace("u", zhuyin.pinyin_tone_dict["u"][tone])
   if "ü" in py:
     return py.replace("ü", zhuyin.pinyin_tone_dict["ü"][tone])
+  if "m" in py:
+    return py.replace("m", zhuyin.pinyin_tone_dict["m"][tone])
+  if "n" in py:
+    return py.replace("n", zhuyin.pinyin_tone_dict["n"][tone])
   return py
 
 def pin(zhu, sep = None):
