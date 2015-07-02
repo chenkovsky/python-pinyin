@@ -165,7 +165,7 @@ def zhu(pinyin):
       tone[0] = phonetic_symbol.phonetic_symbol2[symbol][1]
       return phonetic_symbol.phonetic_symbol2[symbol][0].replace("v","ü")
   py = re.sub(RE_PHONETIC_SYMBOL, _replace , pinyin)
-  print(tone)
+  #print("py:"+str(py))
   return zhuyin.hanpin2zhu[py]+zhuyin.zhuyin_tones[tone[0]]
 
 def tag_tone(py, tone):
@@ -187,15 +187,29 @@ def tag_tone(py, tone):
     return py.replace("ü", zhuyin.pinyin_tone_dict["ü"][tone])
   return py
 
-def pin(zhu):
+def pin(zhu, sep = None):
   """将台湾注音转换成拼音
   """
-  if len(zhu) == 0:
-    return ""
+  if zhu is None or len(zhu) == 0:
+    return None
+
+  #print(zhu, file=sys.stderr)
+  def yin_and_tone(z):
+    if z in zhuyin.special_zhu:
+      return zhuyin.special_zhu[z]
+    if z[0] == zhuyin.zhuyin_tones[0]:
+      # tone == 0
+      return tag_tone(zhuyin.zhu2hanpin[z[1:]], 0)
+    if z[-1] not in zhuyin.zhuyin_tones2num:
+      #tone  == 1
+      return tag_tone(zhuyin.zhu2hanpin[z], 1)
+    return tag_tone(zhuyin.zhu2hanpin[z[:-1]], zhuyin.zhuyin_tones2num[z[-1]])
+
   #if zhu[-1] in zhuyin.zhuyin_tones:
-  return [tag_tone(zhuyin.zhu2hanpin[z[:-1]], zhuyin.zhuyin_tones2num[z[-1]]) for z in zhu.split()]
+  return [yin_and_tone(z) for z in zhu.split(sep)]
   #else:
   #  return tag_tone(zhuyin.zhu2hanpin[zhu], 1)
+
 
 def final(pinyin):
     """获取单个拼音中的韵母.
