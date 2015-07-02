@@ -140,6 +140,7 @@ zhuyin_hanpin_stdpin = [("ㄅㄚ","ba","ba"),
 ("ㄉㄡ","dou","dou"),
 ("ㄉㄢ","dan","dan"),
 ("ㄉㄤ","dang","dang"),
+("ㄉㄣ","den","den"),
 ("ㄉㄥ","deng","deng"),
 ("ㄉㄧ","di","di"),
 ("ㄉㄧㄝ","die","die"),
@@ -486,6 +487,7 @@ zhuyin_hanpin_stdpin = [("ㄅㄚ","ba","ba"),
 #带了儿化音后zuan变成zhua er
 ("ㄗㄨㄚ","zua","zua"),
 ("ㄉㄨㄜ","due","due"),
+("ㄥ", "eng", "eng")
 ]
 
 special_zhu = {"ㄝˋ": "èi"} #對於ㄝ特判,不能映射到拼音,暫時只知道這個問題，可能會有bug
