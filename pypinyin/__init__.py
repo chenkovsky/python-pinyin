@@ -386,16 +386,32 @@ def phrases_pinyin(phrases, style, heteronym, errors='default', missing_word = "
                 py.append(single)
     return py
 
-
+def _in_charset(ch):
+  ch_ord = ord(ch)
+  if ch_ord >= 0x3400 and ch_ord <= 0x4dbf:
+    return True
+  if ch_ord >= 0x4e00 and ch_ord <= 0x9fff:
+    return True
+  if ch_ord >= 0xf900 and ch_ord <= 0xfaff:
+    return True
+  if ch_ord >= 0x20000 and ch_ord <= 0x2fa1f:
+    return True
+  return False
+def in_charset(words):
+  return all(_in_charset(w) for w in words)
 def _pinyin(words, style, heteronym, errors):
+    """
     re_hans = re.compile(r'''^(?:
                          [\u3400-\u4dbf]    # CJK 扩展 A:[3400-4DBF]
                          |[\u4e00-\u9fff]    # CJK 基本:[4E00-9FFF]
                          |[\uf900-\ufaff]    # CJK 兼容:[F900-FAFF]
+                         |[\u20000-\u2FA1F]    # CJK 扩展 B:[20000-2FA1F]
                          )+$''', re.X)
+    """
     pys = []
     # 初步过滤没有拼音的字符
-    if re_hans.match(words):
+    if in_charset(words):
+        #print("match %s" % words)
         pys = phrases_pinyin(words, style=style, heteronym=heteronym,
                              errors=errors)
     else:
@@ -404,7 +420,7 @@ def _pinyin(words, style, heteronym, errors):
         else:
             for word in words:
                 # 字母汉字混合的固定词组（这种情况来自分词结果）
-                if not (re_hans.match(word)
+                if not (in_charset(word)
                         or re.match(r'^[a-zA-Z0-9_]+$', word)
                         ):
                     py = _handle_nopinyin_char(word, errors=errors)
