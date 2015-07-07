@@ -166,6 +166,8 @@ def zhu(pinyin):
       return phonetic_symbol.phonetic_symbol2[symbol][0].replace("v","ü")
   py = re.sub(RE_PHONETIC_SYMBOL, _replace , pinyin)
   #print("py:"+str(py))
+  if not py in zhuyin.hanpin2zhu:
+      return py
   return zhuyin.hanpin2zhu[py]+zhuyin.zhuyin_tones[tone[0]]
 
 def tag_tone(py, tone):
