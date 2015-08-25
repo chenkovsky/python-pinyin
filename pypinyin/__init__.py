@@ -115,9 +115,10 @@ def load_phrases_ngram(phrases_ngram):
   :param phrases_ngram: 词组拼音库。比如： ``{("朝阳", "群众"): [[['cháo'],['yáng']], [['qún'], ['zhòng']]]}``
   :type phrases_ngram: dict
   """
+  global PHRASE_NGRAM_LAST_WORD_SET
   PHRASES_NGRAM.update(phrases_ngram)
   PHRASE_NGRAM_LAST_WORD_SET |= set([x[-1] for x in phrases_ngram])
-  PHRASES_DICT.update({"".join(t) : v for t, v in phrases_ngram.items()})
+  PHRASES_DICT.update({"".join(t) : [x for x in chain(*v)] for t, v in phrases_ngram.items()})
   global updated
   updated = True
 
@@ -131,6 +132,12 @@ def load_single_dict(pinyin_dict):
     global updated
     updated = True
 
+def reset_phrase_dicts():
+    global PHRASES_DICT, PHRASES_NGRAM
+    PHRASES_DICT = {}
+    PHRASES_NGRAM = {}
+    global updated
+    updated = True
 
 def load_phrases_dict(phrases_dict):
     """载入用户自定义的词语拼音库
